@@ -42,6 +42,18 @@ class _BinPair:
         return f"{self.val}/{self.wild}"
 
 
+_BINS = {
+    "0/0": _BinPair(0, 0),
+    "0/1": _BinPair(0, 1),
+    "1/0": _BinPair(1, 0),
+    "1/1": _BinPair(1, 1)
+}
+
+
+def _bin_pair(val, wild):
+    return _BINS[f"{val}/{wild}"]
+
+
 class _BaseOctetPair:
     def __init__(self, val: str, wild: str):
         val_rlt = re.search("[01]+", val.replace(" ", "").replace("_", ""))
@@ -50,7 +62,7 @@ class _BaseOctetPair:
         wild_rlt = re.search("[01]+", wild.replace(" ", "").replace("_", ""))
         if not wild_rlt:
             raise ValueError(f"{wild} not a bin string.")
-        self.bins = [_BinPair(val, wild) for val, wild in zip(list(val_rlt.group()), list(wild_rlt.group()))]
+        self.bins = [_bin_pair(val, wild) for val, wild in zip(list(val_rlt.group()), list(wild_rlt.group()))]
 
     def __eq__(self, other):
         # 所有的 binPair 都相等，才能判断 self 与 other 相等
