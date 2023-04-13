@@ -1,7 +1,7 @@
 import re
 
 
-class BinPair:
+class _BinPair:
     def __init__(self, val, wild):
         self.val = val
         self.wild = wild
@@ -42,7 +42,7 @@ class BinPair:
         return f"{self.val}/{self.wild}"
 
 
-class BaseOctetPair:
+class _BaseOctetPair:
     def __init__(self, val: str, wild: str):
         val_rlt = re.search("[01]+", val.replace(" ", "").replace("_", ""))
         if not val_rlt:
@@ -50,7 +50,7 @@ class BaseOctetPair:
         wild_rlt = re.search("[01]+", wild.replace(" ", "").replace("_", ""))
         if not wild_rlt:
             raise ValueError(f"{wild} not a bin string.")
-        self.bins = [BinPair(val, wild) for val, wild in zip(list(val_rlt.group()), list(wild_rlt.group()))]
+        self.bins = [_BinPair(val, wild) for val, wild in zip(list(val_rlt.group()), list(wild_rlt.group()))]
 
     def __eq__(self, other):
         # 所有的 binPair 都相等，才能判断 self 与 other 相等
@@ -71,8 +71,9 @@ class BaseOctetPair:
         return f"{val}/{wild}"
 
 
-class IPv4Pair(BaseOctetPair):
+class IPv4Pair(_BaseOctetPair):
     def __init__(self, ip: str, wild: str):
+        self.sep = " "
         ip_in_bin = list(map(lambda part: bin(int(part, 10))[2:].zfill(8), ip.split(".")))
         wild_in_bin = list(map(lambda part: bin(int(part, 10))[2:].zfill(8), wild.split(".")))
         super(IPv4Pair, self).__init__(''.join(ip_in_bin), ''.join(wild_in_bin))
@@ -83,13 +84,21 @@ class IPv4Pair(BaseOctetPair):
         for i in range(4):
             ip_parts.append(str(int(''.join(map(lambda b: str(b.val), self.bins[8 * i: 8 * i + 8])), 2)))
             wild_parts.append(str(int(''.join(map(lambda b: str(b.wild), self.bins[8 * i: 8 * i + 8])), 2)))
-        return f"{'.'.join(ip_parts)}/{'.'.join(wild_parts)}"
+        return f"{'.'.join(ip_parts)}{self.sep}{'.'.join(wild_parts)}"
+
+
+def acl_ip(*, ip_prefix, wild=None, proto="ipv4"):
+    if not wild:
+        ip_prefix, wild = ip_prefix.split("/")
+    if proto == "ipv4":
+        return IPv4Pair(ip_prefix, wild)
+    raise NotImplemented
 
 
 if __name__ == '__main__':
-    bo1 = BaseOctetPair("01", "11")
-    bo2 = BaseOctetPair("00", "01")
-    bo3 = BaseOctetPair("10", "00")
+    bo1 = _BaseOctetPair("01", "11")
+    bo2 = _BaseOctetPair("00", "01")
+    bo3 = _BaseOctetPair("10", "00")
     print(bo1, bo2)
     print(bo3 in bo1, bo3 in bo2)
     ip1 = IPv4Pair("192.169.1.100", "0.63.0.255")

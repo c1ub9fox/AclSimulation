@@ -7,7 +7,7 @@ from pprint import pprint
 
 def parse_acl(acl):
 
-    with open('dis_acl.testfsm',mode='r',encoding='utf-8') as t:
+    with open('templates/dis_acl.testfsm', mode='r', encoding='utf-8') as t:
 
         template = TextFSM(t)
         datas = template.ParseTextToDicts(acl)
